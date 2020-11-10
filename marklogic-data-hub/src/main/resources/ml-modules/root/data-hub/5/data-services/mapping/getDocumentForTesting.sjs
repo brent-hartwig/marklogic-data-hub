@@ -48,7 +48,11 @@ if (rtn.format.toUpperCase() === 'JSON') {
     doc.root.envelope.instance :
     doc.root;
 } else {
-  const transformResult = require('./xmlToJsonForMapping.sjs').transform(doc.root);
+  let xmlNode = fn.head(doc.root.xpath("/es:envelope/es:instance/node()", {"es":"http://marklogic.com/entity-services"}))
+  if (xmlNode === null) {
+    xmlNode = doc.root;
+  }
+  const transformResult = require('./xmlToJsonForMapping.sjs').transform(xmlNode);
   rtn.data = transformResult.data;
   rtn.namespaces = transformResult.namespaces;
 }
