@@ -14,4 +14,20 @@ assertions.concat([
   test.assertEqual('JSON', String(result.format), 'The "format" property should be set to "JSON".')
 ]);
 
+const sourceProperties = result.sourceProperties;
+
+let name = '$id';
+assertions.concat(utils.getSourcePropertyAssertions(sourceProperties, name, `/CustOrders/invalidQNames/node('${name}')`, false, 2));
+name = '$array-of-objects';
+assertions.concat(utils.getSourcePropertyAssertions(sourceProperties, name, `/CustOrders/invalidQNames/node('${name}')`, true, 2));
+name = '$array-of-values';
+assertions.concat(utils.getSourcePropertyAssertions(sourceProperties, name, `/CustOrders/invalidQNames/array-node('${name}')/node()`, true, 2));
+
+/*
+let name = 'invalidLocalName:asdf';
+assertions.concat(utils.getSourcePropertyAssertions(sourceProperties, name, `/CustOrders/OddPropertyNames/node('${name}')`, false, 2));
+name = 'propName\u{EFFFF}IncludesUnicode';
+assertions.concat(utils.getSourcePropertyAssertions(sourceProperties, name, `/CustOrders/OddPropertyNames/${name}`, false, 2));
+*/
+
 assertions;
