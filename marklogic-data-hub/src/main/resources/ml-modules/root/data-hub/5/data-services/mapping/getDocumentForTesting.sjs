@@ -55,8 +55,9 @@ function _getXPath(leadingPath, nextPart, value, format, isArray) {
 
 // Recursive function used to populate the sourceProperties portion/array of the return.
 function _flatten(sourceData, sourceFormat, flatArray, flatArrayKey = '', level = 0) {
-  let isObject, isArray, xpath;
-  for (let [key, value] of Object.entries(sourceData)) {
+  let value, isObject, isArray, xpath;
+  for (let key of Object.keys(sourceData)) {
+    value = sourceData[key];
     isObject = value !== null && typeof(value) === 'object';
     isArray = isObject && Array.isArray(value);
     xpath = _getXPath(flatArrayKey, key, value, sourceFormat, isArray);
