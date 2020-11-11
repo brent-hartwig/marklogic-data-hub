@@ -243,10 +243,12 @@ function _determineFinalNSPrefix(currentPrefix, uri) {
     }
   }
 
-  // Retain for future use.
-  namespaces[finalPrefix] = uri;
-  if (currentPrefix !== null) {
-    prefixMap[currentPrefix] = finalPrefix;
+  if (finalPrefix.length > 0) {
+    // Retain for future use.
+    namespaces[finalPrefix] = uri;
+    if (currentPrefix !== null) {
+      prefixMap[currentPrefix] = finalPrefix;
+    }
   }
 
   return finalPrefix;
