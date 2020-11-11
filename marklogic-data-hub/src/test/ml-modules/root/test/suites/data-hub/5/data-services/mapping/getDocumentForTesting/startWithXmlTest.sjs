@@ -112,4 +112,8 @@ assertions = assertions.concat([
   test.assertEqual('XML', String(result.format))
 ]);
 
+// Tests for sourceProperties section.
+const sourceProperties = result.sourceProperties;
+xdmp.log("SOURCE PROPERTIES: " + JSON.stringify(sourceProperties)); // TODO: remove
+
 assertions;

@@ -36,8 +36,8 @@ function _isValidQName(name) {
 }
 
 function _isObject(value) {
-  // TODO: typeof(value) === 'object' not reliable in this context.
-  return value && Object.keys(value).length > 0;
+  // Added key criteria as typeof(value) returned 'object' for some scalar values.
+  return (value && typeof(value) === 'object' && Object.keys(value).length > 0) === true;
 }
 
 function _isAtomic(value) {
@@ -122,6 +122,7 @@ if (_isSourceJson(rtn.format)) {
   rtn.data = transformResult.data;
   rtn.namespaces = transformResult.namespaces;
 }
+xdmp.log("DATA SECTION: " + JSON.stringify(rtn.data)); // TODO: remove
 _flatten(rtn.data, rtn.format, rtn.sourceProperties);
 
 rtn;
