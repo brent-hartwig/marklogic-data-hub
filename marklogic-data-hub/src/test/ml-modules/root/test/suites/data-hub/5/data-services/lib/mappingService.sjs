@@ -40,10 +40,9 @@ const DocumentForTestingUtils = {
     if (!property) {
       test.fail(`No source property with XPath of "${xpath}" in ${JSON.stringify(sourceProperties)}`)
     }
-    xdmp.log(xpath + ": " + struct + " === " + property.struct + " = " + (struct === property.struct));
     return [
       test.assertEqual(name, property.name, `Unexpected "name" value for the source property with the "${xpath}" xpath`),
-      //test.assertTrue(struct === property.struct, `Expected ${struct} for the "struct" value for the source property with the "${xpath}" xpath but got ${property.struct}`),
+      test.assertTrue(struct === property.struct, `Expected ${struct} for the "struct" value for the source property with the "${xpath}" xpath but got ${property.struct}`),
       test.assertEqual(level, property.level, `Unexpected "level" value for the source property with the "${xpath}" xpath`)
     ];
   }

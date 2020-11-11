@@ -3,7 +3,7 @@
 const test = require("/test/test-helper.xqy");
 const utils = require('/test/suites/data-hub/5/data-services/lib/mappingService.sjs').DocumentForTestingUtils;
 
-const assertions = [];
+let assertions = [];
 
 const result = utils.invokeService(utils.STEP_NAME, '/content/sampleCustomerDoc.xml');
 const orderProp = result.data['OrderNS:Order'];
@@ -27,7 +27,7 @@ const expectedNamespaces = {
   "Gamma2": "https://www.amazon.com/Gamma"
 };
 
-assertions.concat([
+assertions = assertions.concat([
   test.assertExists(result.data, 'Top-level "data" property does not exist'),
   test.assertExists(orderProp, "The data's first property is expected to be 'OrderNS:Order'"),
   // Are the namespaces of these attributes correct in the output?

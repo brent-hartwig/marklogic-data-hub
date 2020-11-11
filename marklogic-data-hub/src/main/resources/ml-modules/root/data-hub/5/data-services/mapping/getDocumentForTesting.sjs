@@ -35,13 +35,27 @@ function _isValidQName(name) {
   }
 }
 
+function _isObject(value) {
+  // TODO: typeof(value) === 'object' not reliable in this context.
+  return value && Object.keys(value).length > 0;
+}
+
+function _isAtomic(value) {
+  return !_isObject(value);
+}
+
+function _isArray(value) {
+  // TODO: false negatives from Array.isArray(value)
+  return value && value.hasOwnProperty('0');
+}
+
 function _getXPath(leadingPath, nextPart, value, format, isArray) {
   // Account for invalid QNames, which is possible when the source format is JSON.
   let funcStart = '';
   let funcEnd = '';
   if (_isSourceJson(format) && !_isValidQName(nextPart)) {
     // Array of atomic values
-    if (isArray && value.length > 0 && typeof(value[0]) !== 'object') {
+    if (isArray && value.length > 0 && _isAtomic(value[0])) {
       funcStart = "array-node('";
       funcEnd = "')/node()";
     } else {
@@ -58,10 +72,9 @@ function _flatten(sourceData, sourceFormat, flatArray, flatArrayKey = '', level 
   let value, isObject, isArray, xpath;
   for (let key of Object.keys(sourceData)) {
     value = sourceData[key];
-    isObject = value !== null && typeof(value) === 'object';
-    isArray = isObject && Array.isArray(value);
+    isObject = _isObject(value);
+    isArray = _isArray(value);
     xpath = _getXPath(flatArrayKey, key, value, sourceFormat, isArray);
-    xdmp.log(`struct for ${xpath} is ${isObject}`);
     flatArray.push({
       name: key,
       xpath: xpath,
