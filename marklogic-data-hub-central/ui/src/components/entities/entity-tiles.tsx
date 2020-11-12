@@ -45,6 +45,8 @@ const EntityTiles = (props) => {
             view = 'custom-';
           } else if (location.state.stepDefinitionType === 'matching') {
             view = 'match-';
+          } else if (location.state.stepDefinitionType === 'merging') {
+            view = 'merge-';
           }
           const activeLocationEntityTypes = [location.state.targetEntityType || 'No Entity Type'];
           setLocationEntityType(activeLocationEntityTypes);
@@ -219,33 +221,27 @@ const EntityTiles = (props) => {
     };
 
     const deleteMergingArtifact = async (mergeName) => {
-      //TODO add endpoint functionality
-      console.log('delete Merge Step', mergeName);
-      // try {
-      //     let response = await axios.delete(`/api/steps/merging/${mergeName}`);
-      //     console.log('delete response', response);
-      //     if (response.status === 200) {
-      //       updateIsLoadingFlag();
-      //     }
-      //   } catch (error) {
-      //       let message = error.response.data.message;
-      //       console.error('Error while deleting matching artifact.', message);
-      //   }
+      try {
+          let response = await axios.delete(`/api/steps/merging/${mergeName}`);
+          if (response.status === 200) {
+            updateIsLoadingFlag();
+          }
+        } catch (error) {
+            let message = error.response.data.message;
+            console.error('Error while deleting matching artifact.', message);
+        }
     };
 
     const createMergingArtifact = async (mergingObj) => {
-      //TODO add endpoint functionality
-      console.log('createMergeStep', mergingObj)
-        // try {
-        //     let response = await axios.post(`/api/steps/merging/${mergingObj.name}`, mergingObj);
-        //     console.log('create merge artifact repsone', response)
-        //     if (response.status === 200) {
-        //       updateIsLoadingFlag();
-        //     }
-        //   } catch (error) {
-        //     let message = error.response.data.message;
-        //     console.error('Error While creating the matching artifact!', message);
-        //   }
+        try {
+            let response = await axios.post(`/api/steps/merging/${mergingObj.name}`, mergingObj);
+            if (response.status === 200) {
+              updateIsLoadingFlag();
+            }
+          } catch (error) {
+            let message = error.response.data.message;
+            console.error('Error While creating the matching artifact!', message);
+          }
     };
 
     const getCustomArtifacts = async () => {
@@ -345,17 +341,17 @@ const EntityTiles = (props) => {
                 <Panel header={<span data-testid={entityType}>{entityType}</span>} key={entityModels[entityType].entityTypeId}>
                     <div className={styles.switchMapMaster}>
                     <Menu mode="horizontal" defaultSelectedKeys={['map-' + entityType]}>
-                        {canReadMapping ? <Menu.Item data-testid={`${entityType}-Map`} key={`map-${entityType}`} onClick={() => updateView(index,'map', entityType)}>
+                      {canReadMapping ? <Menu.Item data-testid={`${entityType}-Map`} key={`map-${entityType}`} onClick={() => updateView(index,'map', entityType)}>
                             Map
-                        </Menu.Item>: null}
-                        {props.canReadCustom ? <Menu.Item data-testid={`${entityType}-Custom`} key={`custom-${entityType}`} onClick={() => updateView(index,'custom', entityType)}>
-                            Custom
                         </Menu.Item>: null}
                       {props.canReadMatchMerge  ? <Menu.Item data-testid={`${entityType}-Match`} key={`match-${entityType}`} onClick={() => updateView(index,'match', entityType)}>
                             Match
                         </Menu.Item>: null}
                       {props.canReadMatchMerge  ? <Menu.Item data-testid={`${entityType}-Merge`} key={`merge-${entityType}`} onClick={() => updateView(index,'merge', entityType)}>
                             Merge
+                        </Menu.Item>: null}
+                      {props.canReadCustom ? <Menu.Item data-testid={`${entityType}-Custom`} key={`custom-${entityType}`} onClick={() => updateView(index,'custom', entityType)}>
+                            Custom
                         </Menu.Item>: null}
                     </Menu>
                     </div>
