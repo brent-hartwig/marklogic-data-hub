@@ -41,6 +41,7 @@ describe('Mapping', () => {
     toolbar.getLoadToolbarIcon().click();
     cy.waitUntil(() => loadPage.stepName('ingestion-step').should('be.visible'));
     loadPage.addNewButton('card').click();
+    loadPage.saveButton().should('be.enabled');
     loadPage.stepNameInput().type(loadStep);
     loadPage.stepDescriptionInput().type('load order with processors');
     loadPage.confirmationOptions('Save').click();
@@ -60,6 +61,7 @@ describe('Mapping', () => {
     // add step to new flow
     loadPage.addStepToNewFlow(loadStep);
     cy.findByText('New Flow').should('be.visible');
+    runPage.editSave().should('be.enabled');
     runPage.setFlowName(flowName);
     runPage.setFlowDescription(`${flowName} description`);
     loadPage.confirmationOptions('Save').click();
@@ -75,7 +77,7 @@ describe('Mapping', () => {
     toolbar.getCurateToolbarIcon().click();
     cy.waitUntil(() => curatePage.getEntityTypePanel('Customer').should('be.visible'));
     curatePage.toggleEntityTypeId('Order');
-    cy.waitUntil(() => curatePage.addNewMapStep().click());
+    cy.waitUntil(() => curatePage.addNewStep().click());
 
     createEditMappingDialog.setMappingName(mapStep);
     createEditMappingDialog.setMappingDescription('An order mapping with custom processors');
@@ -168,7 +170,7 @@ describe('Mapping', () => {
     toolbar.getCurateToolbarIcon().click();
     cy.waitUntil(() => curatePage.getEntityTypePanel('Customer').should('be.visible'));
     curatePage.toggleEntityTypeId('Order');
-    cy.waitUntil(() => curatePage.addNewMapStep().click());
+    cy.waitUntil(() => curatePage.addNewStep().click());
 
     createEditMappingDialog.setMappingName(mapStep);
     createEditMappingDialog.setMappingDescription('An order mapping with custom header');
