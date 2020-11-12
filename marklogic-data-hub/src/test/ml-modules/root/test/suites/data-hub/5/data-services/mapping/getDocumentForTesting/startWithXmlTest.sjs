@@ -2,6 +2,7 @@
 
 const test = require("/test/test-helper.xqy");
 const utils = require('/test/suites/data-hub/5/data-services/lib/mappingService.sjs').DocumentForTestingUtils;
+const xmlToJson = require('/data-hub/5/data-services/mapping/xmlToJsonForMapping.sjs');
 
 let assertions = [];
 
@@ -115,5 +116,9 @@ assertions = assertions.concat([
 // Tests for sourceProperties section.
 const sourceProperties = result.sourceProperties;
 xdmp.log("SOURCE PROPERTIES: " + JSON.stringify(sourceProperties)); // TODO: remove
+
+const textNodes = utils.getSourcePropertiesByName(sourceProperties, xmlToJson.PROP_NAME_FOR_TEXT);
+assertions.push(test.assertTrue(textNodes.length === 0,
+  `sourceProperties not expected to include "name" properties with a value of "${xmlToJson.PROP_NAME_FOR_TEXT}" yet ${textNodes.length} were found`));
 
 assertions;

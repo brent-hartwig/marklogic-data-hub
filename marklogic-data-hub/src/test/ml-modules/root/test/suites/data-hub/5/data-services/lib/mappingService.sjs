@@ -23,6 +23,19 @@ const DocumentForTestingUtils = {
       "/data-hub/5/data-services/mapping/getDocumentForTesting.sjs", {stepName, uri}
     ));
   },
+  // May return zero or more.
+  getSourcePropertiesByName: function (sourceProperties, name) {
+    const matches = [];
+    if (Array.isArray(sourceProperties)) {
+      for (let property of sourceProperties) {
+        if (name === property.name) {
+          matches.push(property);
+        }
+      }
+    }
+    return matches;
+  },
+  // This function does not evaluate XPath expressions; rather, a string comparison is performed.
   getSourcePropertyByXPath: function (sourceProperties, xpath) {
     let winner = null;
     if (Array.isArray(sourceProperties)) {

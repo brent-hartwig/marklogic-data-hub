@@ -19,6 +19,7 @@ xdmp.securityAssert('http://marklogic.com/data-hub/privileges/read-mapping', 'ex
 
 const core = require('/data-hub/5/artifacts/core.sjs')
 const ds = require("/data-hub/5/data-services/ds-utils.sjs");
+const xmlToJson = require('./xmlToJsonForMapping.sjs');
 
 var stepName, uri;
 
@@ -71,6 +72,9 @@ function _getXPath(leadingPath, nextPart, value, format, isArray) {
 function _flatten(sourceData, sourceFormat, flatArray, flatArrayKey = '', level = 0) {
   let value, isObject, isArray, xpath;
   for (let key of Object.keys(sourceData)) {
+    // sourceProperties is not to receive the #text properties.
+    if (key === xmlToJson.PROP_NAME_FOR_TEXT) { continue }
+
     value = sourceData[key];
     isObject = _isObject(value);
     isArray = _isArray(value);
@@ -118,7 +122,7 @@ if (_isSourceJson(rtn.format)) {
   if (xmlNode === null) {
     xmlNode = doc.root;
   }
-  const transformResult = require('./xmlToJsonForMapping.sjs').transform(xmlNode);
+  const transformResult = xmlToJson.transform(xmlNode);
   rtn.data = transformResult.data;
   rtn.namespaces = transformResult.namespaces;
 }

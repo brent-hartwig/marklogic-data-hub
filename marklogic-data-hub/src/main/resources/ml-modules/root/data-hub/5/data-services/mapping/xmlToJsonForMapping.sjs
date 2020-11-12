@@ -309,3 +309,4 @@ function transform(xmlNode) {
   }
 }
 exports.transform = transform;
+exports.PROP_NAME_FOR_TEXT = textPropName;
