@@ -126,7 +126,6 @@ if (_isSourceJson(rtn.format)) {
   rtn.data = transformResult.data;
   rtn.namespaces = transformResult.namespaces;
 }
-xdmp.log("DATA SECTION: " + JSON.stringify(rtn.data)); // TODO: remove
 _flatten(rtn.data, rtn.format, rtn.sourceProperties);
 
 rtn;

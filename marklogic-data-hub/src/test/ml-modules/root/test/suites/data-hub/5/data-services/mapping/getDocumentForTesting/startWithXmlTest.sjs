@@ -113,12 +113,86 @@ assertions = assertions.concat([
   test.assertEqual('XML', String(result.format))
 ]);
 
-// Tests for sourceProperties section.
+/*
+ * BEGIN: source property tests
+ */
 const sourceProperties = result.sourceProperties;
-xdmp.log("SOURCE PROPERTIES: " + JSON.stringify(sourceProperties)); // TODO: remove
 
+// First source property.
+let xpath = '/OrderNS:Order';
+let prop = sourceProperties[0];
+assertions = assertions.concat([
+  test.assertEqual(xpath.substr(1), prop.name, "Unexpected name for the first source property"),
+  test.assertEqual(xpath, prop.xpath, "Unexpected xpath for the first source property"),
+  test.assertTrue(prop.struct, `Expected true for the first source property's struct property but got "${prop.struct}"`),
+  test.assertEqual(0, prop.level, 'Unexpected level for the first source property')
+]);
+
+// Test struct=false and level=1
+xpath = '/OrderNS:Order/OrderNS:RequiredDate';
+prop = utils.getSourcePropertyByXPath(sourceProperties, xpath);
+assertions = assertions.concat([
+  test.assertFalse(prop.struct, `Unexpected struct for the ${xpath} source property`),
+  test.assertEqual(1, prop.level, `Unexpected level for the ${xpath} source property`)
+]);
+
+// Namespace changed
+xpath = '/OrderNS:Order/OD:OrderDetails';
+prop = utils.getSourcePropertyByXPath(sourceProperties, xpath);
+assertions.push(test.assertExists(prop, `Expected to find a source property where xpath=${xpath} but did not`));
+
+// Attribute without namespace prefix.
+let name = '@in';
+let props = utils.getSourcePropertiesByName(sourceProperties, name);
+assertions = assertions.concat([
+  test.assertTrue(props.length === 1, `Expected 1 source property where name=${name} but found ${props.length}`),
+  test.assertEqual(`/OrderNS:Order/OD:OrderDetails/${name}`, props[0].xpath, `Unexpected xpath property value for the "${name}" source property`),
+  test.assertFalse(props[0].struct, `Unexpected struct for the "${name}" source property`),
+  test.assertEqual(2, props[0].level, `Unexpected level for the "${name}" source property`)
+])
+
+// Attribute with namespace prefix.
+xpath = '/OrderNS:Order/OD:OrderDetails/@OtherNS:out';
+prop = utils.getSourcePropertyByXPath(sourceProperties, xpath);
+assertions.push(test.assertExists(prop, `Expected to find a source property where xpath=${xpath} but did not`));
+
+// Array (struct=true)
+xpath = '/OrderNS:Order/OD:OrderDetails/OD:OrderDetail';
+prop = utils.getSourcePropertyByXPath(sourceProperties, xpath);
+assertions = assertions.concat([
+  test.assertExists(prop, `Expected to find a source property where xpath=${xpath} but did not`),
+  test.assertTrue(prop.struct, `Unexpected struct for the "${xpath}" source property`)
+]);
+
+// Level 3
+xpath = '/OrderNS:Order/OrderNS:MarkupScenarios/OrderNS:AttrTextAndChild/OrderNS:b';
+prop = utils.getSourcePropertyByXPath(sourceProperties, xpath);
+assertions = assertions.concat([
+  test.assertExists(prop, `Expected to find a source property where xpath=${xpath} but did not`),
+  test.assertEqual(3, prop.level, `Unexpected level for the "${xpath}" source property`)
+]);
+
+// Verify there are the correct number of properties where name=@attr but that they each have a unique xpath.
+let expectedCount = 4;
+let uniqueXPaths = [];
+name = '@attr';
+props = utils.getSourcePropertiesByName(sourceProperties, name);
+for (let p of props) {
+  if (!uniqueXPaths.some(val => val === p.xpath)) {
+    uniqueXPaths.push(p.xpath);
+  }
+}
+assertions.push(test.assertEqual(expectedCount, props.length,
+  `Expected ${expectedCount} source properties where name=${name} but found ${props.length}`))
+assertions.push(test.assertEqual(expectedCount, uniqueXPaths.length,
+  `Expected ${expectedCount} unique XPaths on source properties where name=${name} but found ${uniqueXPaths.length}`))
+
+// Verify #text data properties didn't also become source properties.
 const textNodes = utils.getSourcePropertiesByName(sourceProperties, xmlToJson.PROP_NAME_FOR_TEXT);
 assertions.push(test.assertTrue(textNodes.length === 0,
   `sourceProperties not expected to include "name" properties with a value of "${xmlToJson.PROP_NAME_FOR_TEXT}" yet ${textNodes.length} were found`));
+/*
+ * END: source property tests
+ */
 
 assertions;
