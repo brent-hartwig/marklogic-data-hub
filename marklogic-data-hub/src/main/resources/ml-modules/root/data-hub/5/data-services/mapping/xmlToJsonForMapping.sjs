@@ -23,7 +23,9 @@ const outputAttrStartsWith = '@'; // in case this ever needs to vary from the in
 const nsPrefixDelim = ':';
 const nsAttrStartsWith = attrStartsWith + 'xmlns';
 const defaultNSAttrName = nsAttrStartsWith;
-const nonDefaultNSAttrStartsWith = nsAttrStartsWith + nsPrefixDelim
+const nonDefaultNSAttrStartsWith = nsAttrStartsWith + nsPrefixDelim;
+const cdataPropName = '__cdata';
+const cdataPositionChar = "\\c";
 
 // Set up for parser
 const parser = require('/data-hub/third-party/fast-xml-parser/src/parser.js');
@@ -37,8 +39,8 @@ const parserOptions = {
   parseNodeValue: true,
   parseAttributeValue: true,
   trimValues: true,
-  cdataTagName: '__cdata', //default is 'false'
-  cdataPositionChar: "\\c",
+  cdataTagName: cdataPropName,
+  cdataPositionChar: cdataPositionChar,
   localeRange: '', //To support non english character in tag/attribute values.
   parseTrueNumberOnly: false,
   arrayMode: 'strint'
@@ -66,10 +68,15 @@ function _isObject(value) {
  */
 function _getValueInfo(value) {
   let isScalar = true;
+  let hasCDATA = false;
   let defaultNS = null;
   if (_isObject(value)) {
     for (let key of Object.keys(value)) {
       if (!key.startsWith(textStartsWith) && !key.startsWith(nsAttrStartsWith)) {
+        isScalar = false;
+      }
+      if (value.hasOwnProperty(cdataPropName)) {
+        hasCDATA = true;
         isScalar = false;
       }
       if (key === defaultNSAttrName) {
@@ -86,6 +93,7 @@ function _getValueInfo(value) {
   return {
     isArray: isScalar ? false : Array.isArray(value),
     isScalar: isScalar,
+    hasCDATA: hasCDATA,
     value: value,
     defaultNS: defaultNS
   }
