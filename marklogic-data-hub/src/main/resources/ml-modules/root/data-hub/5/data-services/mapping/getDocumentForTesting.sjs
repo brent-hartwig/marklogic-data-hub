@@ -46,7 +46,7 @@ function _isAtomic(value) {
 }
 
 function _isArray(value) {
-  // TODO: false negatives from Array.isArray(value)
+  // False negatives from Array.isArray(value)
   return value && value.hasOwnProperty('0');
 }
 
