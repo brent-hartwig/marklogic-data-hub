@@ -43,9 +43,9 @@ assertions = assertions.concat([
   test.assertTrue(Array.isArray(orderProp['OD:OrderDetails']['OD:OrderDetail']) && orderProp['OD:OrderDetails']['OD:OrderDetail'].length === 2,
     "OD:OrderDetail should be an array with two items but is " + JSON.stringify(orderProp['OD:OrderDetails']['OD:OrderDetail'])),
   test.assertExists(orderProp['OD:OrderDetails']['OD:OrderDetail'][0]['Wash:UnitPrice'],
-    "The first OD:OrderDetails element should have a Wash:UnitPrice child."),
+    "The first OD:OrderDetails element should have a Wash:UnitPrice child"),
   test.assertExists(orderProp['OD:OrderDetails']['OD:OrderDetail'][1]['Cali:UnitPrice'],
-    "The second OD:OrderDetails element should have a Cali:UnitPrice child."),
+    "The second OD:OrderDetails element should have a Cali:UnitPrice child"),
   // ShippedDate should be an array.
   test.assertExists(orderProp['OrderNS:ShippedDate']),
   test.assertTrue(Array.isArray(orderProp['OrderNS:ShippedDate']) && orderProp['OrderNS:ShippedDate'].length === 2,
@@ -53,7 +53,7 @@ assertions = assertions.concat([
   // Verify the default namespace changed.
   test.assertExists(orderProp['SV:ShipVia']),
   // Verify the default namespace immediately reverted.
-  test.assertExists(orderProp['OrderNS:ShipPostalCode'], "Looks like the default namespace did not revert."),
+  test.assertExists(orderProp['OrderNS:ShipPostalCode'], "Looks like the default namespace did not revert"),
   // More should and should-not-be array tests
   test.assertEqual("Should *not* be in an array.", String(orderProp['Gamma:Element1']),
     "Gamma:Element1 should just be a string as next Element1 is in a different namespace"),
@@ -67,41 +67,41 @@ assertions = assertions.concat([
   // EmptyElementWithoutAttributes
   test.assertExists(markupScenariosProp['OrderNS:EmptyElementWithoutAttributes']),
   test.assertEqual('', String(markupScenariosProp['OrderNS:EmptyElementWithoutAttributes']),
-    'Expected the OrderNS:EmptyElementWithoutAttributes property value to be an empty string.'),
+    'Expected the OrderNS:EmptyElementWithoutAttributes property value to be an empty string'),
   // EmptyElementWithAttribute
   test.assertExists(markupScenariosProp['OrderNS:EmptyElementWithAttribute']),
   test.assertEqual('hello', String(markupScenariosProp['OrderNS:EmptyElementWithAttribute']['@attr']),
-    'Expected OrderNS:EmptyElementWithAttribute to have the "@attr" property set to "hello".'),
+    'Expected OrderNS:EmptyElementWithAttribute to have the "@attr" property set to "hello"'),
   // NoTextOrAttrs
   test.assertExists(markupScenariosProp['OrderNS:NoTextOrAttrs']),
   test.assertEqual('', String(markupScenariosProp['OrderNS:NoTextOrAttrs']),
-    'Expected the OrderNS:NoTextOrAttrs property value to be an empty string.'),
+    'Expected the OrderNS:NoTextOrAttrs property value to be an empty string'),
   // JustText
   test.assertExists(markupScenariosProp['OrderNS:JustText']),
   test.assertEqual('Hello', String(markupScenariosProp['OrderNS:JustText']),
-    'Expected the OrderNS:JustText property value to be "Hello".'),
+    'Expected the OrderNS:JustText property value to be "Hello"'),
   // JustAttr
   test.assertExists(markupScenariosProp['OrderNS:JustAttr']),
   test.assertEqual('Howdy', String(markupScenariosProp['OrderNS:JustAttr']['@attr']),
-    'Expected OrderNS:JustAttr to have the "@attr" property set to "Howdy".'),
+    'Expected OrderNS:JustAttr to have the "@attr" property set to "Howdy"'),
   // AttrAndText
   test.assertExists(markupScenariosProp['OrderNS:AttrAndText']),
   test.assertEqual('Some Text', String(markupScenariosProp['OrderNS:AttrAndText']['#text']),
-    'Expected OrderNS:AttrAndText to have text of "Some Text".'),
+    'Expected OrderNS:AttrAndText to have text of "Some Text"'),
   test.assertEqual('myattr', String(markupScenariosProp['OrderNS:AttrAndText']['@attr']),
-    'Expected OrderNS:AttrAndText to have the "@attr" property set to "myattr".'),
+    'Expected OrderNS:AttrAndText to have the "@attr" property set to "myattr"'),
   // AttrTextAndChild
   test.assertExists(markupScenariosProp['OrderNS:AttrTextAndChild']),
   test.assertEqual('How aredoing?', String(markupScenariosProp['OrderNS:AttrTextAndChild']['#text']),
-    'Expected OrderNS:AttrTextAndChild to have text of "How aredoing?".'),
+    'Expected OrderNS:AttrTextAndChild to have text of "How aredoing?"'),
   test.assertEqual('woohoo!', String(markupScenariosProp['OrderNS:AttrTextAndChild']['@attr']),
-    'Expected OrderNS:AttrTextAndChild to have the "@attr" property set to "woohoo!".'),
+    'Expected OrderNS:AttrTextAndChild to have the "@attr" property set to "woohoo!"'),
   test.assertEqual('you', String(markupScenariosProp['OrderNS:AttrTextAndChild']['OrderNS:b']),
-    'Expected OrderNS:AttrTextAndChild to have a property named "b" with a value of "you".'),
+    'Expected OrderNS:AttrTextAndChild to have a property named "b" with a value of "you"'),
   // MultipleTextNodes
   test.assertExists(markupScenariosProp['OrderNS:MultipleTextNodes']),
   test.assertEqual('1st text node2nd text node', String(markupScenariosProp['OrderNS:MultipleTextNodes']['#text']),
-    'While not desired, expected the two text nodes in OrderNS:MultipleTextNodes to be concatenated.'),
+    'While not desired, expected the two text nodes in OrderNS:MultipleTextNodes to be concatenated'),
   // ExampleWithCDATA
   test.assertExists(markupScenariosProp['OrderNS:ExampleWithCDATA']),
   test.assertEqual('Text outside Text inside More text outside', String(markupScenariosProp['OrderNS:ExampleWithCDATA']),
