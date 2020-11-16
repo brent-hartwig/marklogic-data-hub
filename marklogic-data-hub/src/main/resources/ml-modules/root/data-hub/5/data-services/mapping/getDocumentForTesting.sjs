@@ -19,89 +19,10 @@ xdmp.securityAssert('http://marklogic.com/data-hub/privileges/read-mapping', 'ex
 
 const core = require('/data-hub/5/artifacts/core.sjs')
 const ds = require("/data-hub/5/data-services/ds-utils.sjs");
+const sourceProps = require('./testingSourceProperties.sjs');
 const xmlToJson = require('./xmlToJsonForMapping.sjs');
 
 var stepName, uri;
-
-function isSourceJson(format) {
-  return format.toUpperCase() === 'JSON'
-}
-
-function isValidQName(name) {
-  try {
-    fn.QName('', name);
-    return true;
-  } catch (e) {
-    return false;
-  }
-}
-
-function isObject(value) {
-  // Added key criteria as typeof(value) returned 'object' for some scalar values.
-  return (value && typeof(value) === 'object' && Object.keys(value).length > 0) === true;
-}
-
-function isAtomic(value) {
-  return !isObject(value);
-}
-
-function isArray(value) {
-  // False negatives from Array.isArray(value)
-  return value && value.hasOwnProperty('0');
-}
-
-/**
- * Construct an XPath, accounting for invalid qualified names, which is possible when the source format is JSON.
- * For example, if nextPart is "$myName" where "$" is not an allowed character in a qualified name, the returned
- * XPath expression will include "array-node('$myName') when true and values within are believed to be atomic; else,
- * for this example, "node('$myName')" would end the XPath expression.
- *
- * @param {string} leadingPath - The beginning of the XPath expression.  Used as given.
- * @param {string} nextPart - The bit to append to the XPath expression, in one of several ways, influenced by other parameters.
- * @param {object} value - The value the XPath expression points to.
- * @param {string} format - The source document's format.
- * @param {boolean} isArray - Pre-determination of whether value is an array.
- * @returns {string} - An XPath expression where any invalid qualified name is wrapped in either node() or array-node().
- */
-function makeSafeXPathExpression(leadingPath, nextPart, value, format, isArray) {
-  let funcStart = '';
-  let funcEnd = '';
-  if (isSourceJson(format) && !isValidQName(nextPart)) {
-    // Array of atomic values
-    if (isArray && value.length > 0 && isAtomic(value[0])) {
-      funcStart = "array-node('";
-      funcEnd = "')/node()";
-    } else {
-      // Either not an array, an empty array, or an array of object values.
-      funcStart = "node('";
-      funcEnd = "')";
-    }
-  }
-  return `${leadingPath}/${funcStart}${nextPart}${funcEnd}`;
-}
-
-// Recursive function used to populate the sourceProperties portion/array of the return.
-function flatten(sourceData, sourceFormat, flatArray, flatArrayKey = '', level = 0) {
-  let value, valueIsObject, valueIsArray, xpath;
-  for (let key of Object.keys(sourceData)) {
-    // sourceProperties is not to receive the #text properties.
-    if (key === xmlToJson.PROP_NAME_FOR_TEXT) { continue }
-
-    value = sourceData[key];
-    valueIsObject = isObject(value);
-    valueIsArray = isArray(value);
-    xpath = makeSafeXPathExpression(flatArrayKey, key, value, sourceFormat, valueIsArray);
-    flatArray.push({
-      name: key,
-      xpath: xpath,
-      struct: valueIsObject,
-      level: level
-    })
-    if (valueIsObject && !valueIsArray) {
-      flatten(value, sourceFormat, flatArray, `${flatArrayKey}/${key}`, level + 1);
-    }
-  }
-}
 
 const rtn = {
   data: null,
@@ -125,7 +46,7 @@ if (doc === null) {
 
 // Populate return object.
 rtn.format = doc.documentFormat;
-if (isSourceJson(rtn.format)) {
+if (sourceProps.isSourceJson(rtn.format)) {
   rtn.data = (doc.root.hasOwnProperty('envelope') && doc.root.envelope.hasOwnProperty('instance')) ?
     doc.root.envelope.instance :
     doc.root;
@@ -138,6 +59,6 @@ if (isSourceJson(rtn.format)) {
   rtn.data = transformResult.data;
   rtn.namespaces = transformResult.namespaces;
 }
-flatten(rtn.data, rtn.format, rtn.sourceProperties);
+sourceProps.buildSourceProperties(rtn.data, rtn.format, rtn.sourceProperties);
 
 rtn;
