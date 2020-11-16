@@ -15,10 +15,6 @@
  */
 'use strict';
 
-function isSourceJson(format) {
-  return format.toUpperCase() === 'JSON'
-}
-
 function isValidQName(name) {
   try {
     fn.QName('', name);
@@ -51,14 +47,14 @@ function isArray(value) {
  * @param {string} leadingPath - The beginning of the XPath expression.  Used as given.
  * @param {string} nextPart - The bit to append to the XPath expression, in one of several ways, influenced by other parameters.
  * @param {object} value - The value the XPath expression points to.
- * @param {string} format - The source document's format.
+ * @param {boolean} isJson - Submit true when the source document's format is JSON.
  * @param {boolean} isArray - Pre-determination of whether value is an array.
  * @returns {string} - An XPath expression where an invalid qualified name is wrapped in either array-node() or node().
  */
-function makeSafeXPathExpression(leadingPath, nextPart, value, format, isArray) {
+function makeSafeXPathExpression(leadingPath, nextPart, value, isJson, isArray) {
   let funcStart = '';
   let funcEnd = '';
-  if (isSourceJson(format) && !isValidQName(nextPart)) {
+  if (isJson && !isValidQName(nextPart)) {
     // Array of atomic values
     if (isArray && value.length > 0 && isAtomic(value[0])) {
       funcStart = "array-node('";
@@ -72,28 +68,33 @@ function makeSafeXPathExpression(leadingPath, nextPart, value, format, isArray) 
   return `${leadingPath}/${funcStart}${nextPart}${funcEnd}`;
 }
 
-// Recursive function used to populate the sourceProperties portion/array of getDocumentForTesting's return.
-function buildSourceProperties(sourceData, sourceFormat, flatArray, flatArrayKey = '', level = 0) {
+// Recursively process sourceData, populating a flat array of its source properties.
+function addSourceProperties(sourceData, isJson, outputArr, outputArrKey = '', level = 0) {
   let value, valueIsObject, valueIsArray, xpath;
   for (let key of Object.keys(sourceData)) {
     // sourceProperties is not to receive the #text properties.
-    if (key === xmlToJson.PROP_NAME_FOR_TEXT) { continue }
+    if (key === require('./xmlToJsonForMapping.sjs').PROP_NAME_FOR_TEXT) { continue }
 
     value = sourceData[key];
     valueIsObject = isObject(value);
     valueIsArray = isArray(value);
-    xpath = makeSafeXPathExpression(flatArrayKey, key, value, sourceFormat, valueIsArray);
-    flatArray.push({
+    xpath = makeSafeXPathExpression(outputArrKey, key, value, isJson, valueIsArray);
+    outputArr.push({
       name: key,
       xpath: xpath,
       struct: valueIsObject,
       level: level
     })
     if (valueIsObject && !valueIsArray) {
-      buildSourceProperties(value, sourceFormat, flatArray, `${flatArrayKey}/${key}`, level + 1);
+      addSourceProperties(value, isJson, outputArr, `${outputArrKey}/${key}`, level + 1);
     }
   }
 }
 
-exports.isSourceJson = isSourceJson;
+// Build and return the sourceProperties portion/array of getDocumentForTesting's return.
+function buildSourceProperties(sourceData, isJson) {
+  const outputArr = [];
+  addSourceProperties(sourceData, isJson, outputArr, '', 0)
+  return outputArr;
+}
 exports.buildSourceProperties = buildSourceProperties;
