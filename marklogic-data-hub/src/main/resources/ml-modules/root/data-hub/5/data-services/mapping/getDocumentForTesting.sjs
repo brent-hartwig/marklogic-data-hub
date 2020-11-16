@@ -50,8 +50,20 @@ function isArray(value) {
   return value && value.hasOwnProperty('0');
 }
 
-function getXPath(leadingPath, nextPart, value, format, isArray) {
-  // Account for invalid QNames, which is possible when the source format is JSON.
+/**
+ * Construct an XPath, accounting for invalid qualified names, which is possible when the source format is JSON.
+ * For example, if nextPart is "$myName" where "$" is not an allowed character in a qualified name, the returned
+ * XPath expression will include "array-node('$myName') when true and values within are believed to be atomic; else,
+ * for this example, "node('$myName')" would end the XPath expression.
+ *
+ * @param {string} leadingPath - The beginning of the XPath expression.  Used as given.
+ * @param {string} nextPart - The bit to append to the XPath expression, in one of several ways, influenced by other parameters.
+ * @param {object} value - The value the XPath expression points to.
+ * @param {string} format - The source document's format.
+ * @param {boolean} isArray - Pre-determination of whether value is an array.
+ * @returns {string} - An XPath expression where any invalid qualified name is wrapped in either node() or array-node().
+ */
+function makeSafeXPathExpression(leadingPath, nextPart, value, format, isArray) {
   let funcStart = '';
   let funcEnd = '';
   if (isSourceJson(format) && !isValidQName(nextPart)) {
@@ -78,7 +90,7 @@ function flatten(sourceData, sourceFormat, flatArray, flatArrayKey = '', level =
     value = sourceData[key];
     valueIsObject = isObject(value);
     valueIsArray = isArray(value);
-    xpath = getXPath(flatArrayKey, key, value, sourceFormat, valueIsArray);
+    xpath = makeSafeXPathExpression(flatArrayKey, key, value, sourceFormat, valueIsArray);
     flatArray.push({
       name: key,
       xpath: xpath,
