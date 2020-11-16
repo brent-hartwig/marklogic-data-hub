@@ -48,16 +48,15 @@ const DocumentForTestingUtils = {
     }
     return winner;
   },
-  getSourcePropertyAssertions: function (sourceProperties, name, xpath, struct, level) {
+  addSourcePropertyAssertions: function (assertions, sourceProperties, name, xpath, struct, level) {
     const property = this.getSourcePropertyByXPath(sourceProperties, xpath);
     if (!property) {
-      test.fail(`No source property with XPath of "${xpath}" in ${JSON.stringify(sourceProperties)}`)
+      assertions.push(test.fail(`No source property with XPath of "${xpath}" in ${JSON.stringify(sourceProperties)}`));
     }
-    return [
-      test.assertEqual(name, property.name, `Unexpected "name" value for the source property with the "${xpath}" xpath`),
-      test.assertTrue(struct === property.struct, `Expected ${struct} for the "struct" value for the source property with the "${xpath}" xpath but got ${property.struct}`),
-      test.assertEqual(level, property.level, `Unexpected "level" value for the source property with the "${xpath}" xpath`)
-    ];
+
+    assertions.push(test.assertEqual(name, property.name, `Unexpected "name" value for the source property with the "${xpath}" xpath`));
+    assertions.push(test.assertTrue(struct === property.struct, `Expected ${struct} for the "struct" value for the source property with the "${xpath}" xpath but got ${property.struct}`));
+    assertions.push(test.assertEqual(level, property.level, `Unexpected "level" value for the source property with the "${xpath}" xpath`));
   }
 }
 
