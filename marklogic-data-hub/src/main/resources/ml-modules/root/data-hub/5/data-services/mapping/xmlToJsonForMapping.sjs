@@ -16,21 +16,20 @@
 'use strict';
 
 // Global constants
-const textStartsWith = '#';
-const textPropName = textStartsWith + 'text';
-const attrStartsWith = '@';
-const outputAttrStartsWith = '@'; // in case this ever needs to vary from the input.
-const nsPrefixDelim = ':';
-const nsAttrStartsWith = attrStartsWith + 'xmlns';
-const defaultNSAttrName = nsAttrStartsWith;
-const nonDefaultNSAttrStartsWith = nsAttrStartsWith + nsPrefixDelim;
+const PROP_NAME_TEXT_STARTS_WITH = '#';
+const PROP_NAME_TEXT = PROP_NAME_TEXT_STARTS_WITH + 'text';
+const PROP_NAME_ATTR_STARTS_WITH = '@';
+const DELIM_NS_PREFIX = ':';
+const PROP_NAME_NS_ATTR_STARTS_WITH = PROP_NAME_ATTR_STARTS_WITH + 'xmlns';
+const ATTR_NAME_DEFAULT_NS = PROP_NAME_NS_ATTR_STARTS_WITH;
+const ATTR_NAME_NON_DEFAULT_NS_STARTS_WITH = PROP_NAME_NS_ATTR_STARTS_WITH + DELIM_NS_PREFIX;
 
 // Set up for parser
 const parser = require('/data-hub/third-party/fast-xml-parser/src/parser.js');
 const parserOptions = {
-  attributeNamePrefix: attrStartsWith,
+  attributeNamePrefix: PROP_NAME_ATTR_STARTS_WITH,
   attrNodeName: false, //default is 'false'
-  textNodeName: textPropName,
+  textNodeName: PROP_NAME_TEXT,
   ignoreAttributes: false,
   ignoreNameSpace: false,
   allowBooleanAttributes: false,
@@ -45,11 +44,11 @@ const parserOptions = {
 };
 
 function isAttr(name) {
-  return name.startsWith(attrStartsWith);
+  return name.startsWith(PROP_NAME_ATTR_STARTS_WITH);
 }
 
 function isNSAttr(name) {
-  return name.startsWith(nsAttrStartsWith);
+  return name.startsWith(PROP_NAME_NS_ATTR_STARTS_WITH);
 }
 
 function isObject(value) {
@@ -69,10 +68,10 @@ function getValueInfo(value) {
   let defaultNS = null;
   if (isObject(value)) {
     for (let key of Object.keys(value)) {
-      if (!key.startsWith(textStartsWith) && !key.startsWith(nsAttrStartsWith)) {
+      if (!key.startsWith(PROP_NAME_TEXT_STARTS_WITH) && !key.startsWith(PROP_NAME_NS_ATTR_STARTS_WITH)) {
         isAtomic = false;
       }
-      if (key === defaultNSAttrName) {
+      if (key === ATTR_NAME_DEFAULT_NS) {
         defaultNS = {
           prefix: determineFinalNSPrefix(null, value[key]),
           uri: value[key]
@@ -80,8 +79,8 @@ function getValueInfo(value) {
       }
     }
   }
-  if (isAtomic && value.hasOwnProperty(textPropName)) {
-    value = value[textPropName];
+  if (isAtomic && value.hasOwnProperty(PROP_NAME_TEXT)) {
+    value = value[PROP_NAME_TEXT];
   }
   return {
     isArray: isAtomic ? false : Array.isArray(value),
@@ -108,24 +107,24 @@ function transformAttr(jsonOut, attrName, value, defaultNS) {
     conditionallyCollectNonDefaultNSs();
   } else {
     // Strip input indicator that this is an attribute.
-    if (attrName.startsWith(attrStartsWith)) {
-      attrName = attrName.substr(attrStartsWith.length);
+    if (attrName.startsWith(PROP_NAME_ATTR_STARTS_WITH)) {
+      attrName = attrName.substr(PROP_NAME_ATTR_STARTS_WITH.length);
     }
 
     // Fully qualify the attribute name.
-    attrName = getQName(attrName, true, defaultNS);
+    attrName = PROP_NAME_ATTR_STARTS_WITH + getQName(attrName, true, defaultNS);
 
-    jsonOut[outputAttrStartsWith + attrName] = value;
+    jsonOut[attrName] = value;
   }
 }
 
 function transformObject(jsonOut, objName, value, defaultNS) {
   // Did the default namespace change?
-  if (value.hasOwnProperty(defaultNSAttrName)) {
+  if (value.hasOwnProperty(ATTR_NAME_DEFAULT_NS)) {
     conditionallyCollectNonDefaultNSs();
     defaultNS = {
-      prefix: determineFinalNSPrefix(null, value[defaultNSAttrName]),
-      uri: value[defaultNSAttrName]
+      prefix: determineFinalNSPrefix(null, value[ATTR_NAME_DEFAULT_NS]),
+      uri: value[ATTR_NAME_DEFAULT_NS]
     }
   }
 
@@ -194,8 +193,8 @@ function conditionallyCollectNonDefaultNSs() {
 function collectNonDefaultNSs(obj) {
   for (let key of Object.keys(obj)) {
     if (isAttr(key)) {
-      if (key.startsWith(nonDefaultNSAttrStartsWith)) {
-        determineFinalNSPrefix(key.substr(nonDefaultNSAttrStartsWith.length), obj[key]);
+      if (key.startsWith(ATTR_NAME_NON_DEFAULT_NS_STARTS_WITH)) {
+        determineFinalNSPrefix(key.substr(ATTR_NAME_NON_DEFAULT_NS_STARTS_WITH.length), obj[key]);
       }
     } else if (isObject(obj[key])) {
       collectNonDefaultNSs(obj[key]);
@@ -268,7 +267,7 @@ function getFinalNSPrefix(currentPrefix, uri) {
 
 function getQName(name, isAttr, defaultNS, preferDefaultNS = false) {
   let finalPrefix = null;
-  const idx = name.indexOf(nsPrefixDelim);
+  const idx = name.indexOf(DELIM_NS_PREFIX);
   if (idx !== -1) {
     const currentPrefix = name.substr(0, idx);
     name = name.substr(idx + 1);
@@ -280,15 +279,16 @@ function getQName(name, isAttr, defaultNS, preferDefaultNS = false) {
       // Add a prefix as this is not an attribute in the default namespace (no prefix desired in that case).
       finalPrefix = getFinalNSPrefix(currentPrefix, null);
     }
-  } else if (!isAttr && name !== textPropName && defaultNS !== null) {
+  } else if (!isAttr && name !== PROP_NAME_TEXT && defaultNS !== null) {
     finalPrefix = defaultNS.prefix;
   }
 
-  return (finalPrefix ? finalPrefix + nsPrefixDelim : '') + name;
+  return (finalPrefix ? finalPrefix + DELIM_NS_PREFIX : '') + name;
 }
 
 // These global variables pertain to collecting namespaces defined within the provided XML.
 // Only performed once upon encountering the first namespace attribute.
+// Not compatible with MSJ.
 let jsonIn;
 let collectedNonDefaultNSs = false;
 const namespaces = {};
@@ -309,4 +309,4 @@ function transformXml(xmlNode) {
   }
 }
 exports.transform = transformXml;
-exports.PROP_NAME_FOR_TEXT = textPropName;
+exports.PROP_NAME_TEXT = PROP_NAME_TEXT;
