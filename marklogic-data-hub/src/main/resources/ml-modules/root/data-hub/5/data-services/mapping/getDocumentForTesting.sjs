@@ -23,11 +23,11 @@ const xmlToJson = require('./xmlToJsonForMapping.sjs');
 
 var stepName, uri;
 
-function _isSourceJson(format) {
+function isSourceJson(format) {
   return format.toUpperCase() === 'JSON'
 }
 
-function _isValidQName(name) {
+function isValidQName(name) {
   try {
     fn.QName('', name);
     return true;
@@ -36,27 +36,27 @@ function _isValidQName(name) {
   }
 }
 
-function _isObject(value) {
+function isObject(value) {
   // Added key criteria as typeof(value) returned 'object' for some scalar values.
   return (value && typeof(value) === 'object' && Object.keys(value).length > 0) === true;
 }
 
-function _isAtomic(value) {
-  return !_isObject(value);
+function isAtomic(value) {
+  return !isObject(value);
 }
 
-function _isArray(value) {
+function isArray(value) {
   // False negatives from Array.isArray(value)
   return value && value.hasOwnProperty('0');
 }
 
-function _getXPath(leadingPath, nextPart, value, format, isArray) {
+function getXPath(leadingPath, nextPart, value, format, isArray) {
   // Account for invalid QNames, which is possible when the source format is JSON.
   let funcStart = '';
   let funcEnd = '';
-  if (_isSourceJson(format) && !_isValidQName(nextPart)) {
+  if (isSourceJson(format) && !isValidQName(nextPart)) {
     // Array of atomic values
-    if (isArray && value.length > 0 && _isAtomic(value[0])) {
+    if (isArray && value.length > 0 && isAtomic(value[0])) {
       funcStart = "array-node('";
       funcEnd = "')/node()";
     } else {
@@ -69,24 +69,24 @@ function _getXPath(leadingPath, nextPart, value, format, isArray) {
 }
 
 // Recursive function used to populate the sourceProperties portion/array of the return.
-function _flatten(sourceData, sourceFormat, flatArray, flatArrayKey = '', level = 0) {
-  let value, isObject, isArray, xpath;
+function flatten(sourceData, sourceFormat, flatArray, flatArrayKey = '', level = 0) {
+  let value, valueIsObject, valueIsArray, xpath;
   for (let key of Object.keys(sourceData)) {
     // sourceProperties is not to receive the #text properties.
     if (key === xmlToJson.PROP_NAME_FOR_TEXT) { continue }
 
     value = sourceData[key];
-    isObject = _isObject(value);
-    isArray = _isArray(value);
-    xpath = _getXPath(flatArrayKey, key, value, sourceFormat, isArray);
+    valueIsObject = isObject(value);
+    valueIsArray = isArray(value);
+    xpath = getXPath(flatArrayKey, key, value, sourceFormat, valueIsArray);
     flatArray.push({
       name: key,
       xpath: xpath,
-      struct: isObject,
+      struct: valueIsObject,
       level: level
     })
-    if (isObject && !isArray) {
-      _flatten(value, sourceFormat, flatArray, `${flatArrayKey}/${key}`, level + 1);
+    if (valueIsObject && !valueIsArray) {
+      flatten(value, sourceFormat, flatArray, `${flatArrayKey}/${key}`, level + 1);
     }
   }
 }
@@ -113,7 +113,7 @@ if (doc === null) {
 
 // Populate return object.
 rtn.format = doc.documentFormat;
-if (_isSourceJson(rtn.format)) {
+if (isSourceJson(rtn.format)) {
   rtn.data = (doc.root.hasOwnProperty('envelope') && doc.root.envelope.hasOwnProperty('instance')) ?
     doc.root.envelope.instance :
     doc.root;
@@ -126,6 +126,6 @@ if (_isSourceJson(rtn.format)) {
   rtn.data = transformResult.data;
   rtn.namespaces = transformResult.namespaces;
 }
-_flatten(rtn.data, rtn.format, rtn.sourceProperties);
+flatten(rtn.data, rtn.format, rtn.sourceProperties);
 
 rtn;
