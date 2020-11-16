@@ -3,7 +3,7 @@
 const test = require("/test/test-helper.xqy");
 const utils = require('/test/suites/data-hub/5/data-services/lib/mappingService.sjs').DocumentForTestingUtils;
 
-let assertions = [];
+const assertions = [];
 const uri = '/uri/to/non-existent/doc.json';
 
 // Using try/catch as an alternative to test.assertThrowsError*().

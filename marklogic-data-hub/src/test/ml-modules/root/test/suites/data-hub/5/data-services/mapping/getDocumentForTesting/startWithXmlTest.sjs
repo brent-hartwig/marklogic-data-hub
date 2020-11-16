@@ -4,7 +4,7 @@ const test = require("/test/test-helper.xqy");
 const utils = require('/test/suites/data-hub/5/data-services/lib/mappingService.sjs').DocumentForTestingUtils;
 const xmlToJson = require('/data-hub/5/data-services/mapping/xmlToJsonForMapping.sjs');
 
-let assertions = [];
+const assertions = [];
 
 const result = utils.invokeService(utils.STEP_NAME, '/content/sampleCustomerDoc.xml');
 const orderProp = result.data['OrderNS:Order'];
