@@ -19,11 +19,11 @@ xdmp.securityAssert('http://marklogic.com/data-hub/privileges/read-mapping', 'ex
 
 const core = require('/data-hub/5/artifacts/core.sjs')
 const ds = require("/data-hub/5/data-services/ds-utils.sjs");
-const sourceProps = require('./testingSourceProperties.sjs');
+const sourcePropsLib = require('./sourcePropertiesLib.sjs');
 
 var stepName, uri;
 
-const rtn = {
+const response = {
   data: null,
   namespaces: {},
   format: null,
@@ -44,10 +44,10 @@ if (doc === null) {
 }
 
 // Populate return object.
-rtn.format = doc.documentFormat;
-const isJson = rtn.format.toUpperCase() === 'JSON';
+response.format = doc.documentFormat;
+const isJson = response.format.toUpperCase() === 'JSON';
 if (isJson) {
-  rtn.data = (doc.root.hasOwnProperty('envelope') && doc.root.envelope.hasOwnProperty('instance')) ?
+  response.data = (doc.root.hasOwnProperty('envelope') && doc.root.envelope.hasOwnProperty('instance')) ?
     doc.root.envelope.instance :
     doc.root;
 } else {
@@ -56,9 +56,9 @@ if (isJson) {
     xmlNode = doc.root;
   }
   const transformResult = require('./xmlToJsonForMapping.sjs').transform(xmlNode);
-  rtn.data = transformResult.data;
-  rtn.namespaces = transformResult.namespaces;
+  response.data = transformResult.data;
+  response.namespaces = transformResult.namespaces;
 }
-rtn.sourceProperties = sourceProps.buildSourceProperties(rtn.data, isJson);
+response.sourceProperties = sourcePropsLib.buildSourceProperties(response.data, isJson);
 
-rtn;
+response;

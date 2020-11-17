@@ -15,27 +15,34 @@
  */
 'use strict';
 
-function isValidQName(name) {
-  try {
-    fn.QName('', name);
-    return true;
-  } catch (e) {
-    return false;
+// Build and return the sourceProperties portion/array of getDocumentForTesting's return.
+function buildSourceProperties(sourceData, isJson) {
+  const outputArr = [];
+  addSourceProperties(sourceData, isJson, outputArr, '', 0)
+  return outputArr;
+}
+
+// Recursively process sourceData, populating a flat array of its source properties.
+function addSourceProperties(sourceData, isJson, outputArr, outputArrKey = '', level = 0) {
+  let value, valueIsObject, valueIsArray, xpath;
+  for (let key of Object.keys(sourceData)) {
+    // sourceProperties is not to receive the #text properties.
+    if (key === require('./xmlToJsonForMapping.sjs').PROP_NAME_TEXT) { continue }
+
+    value = sourceData[key];
+    valueIsObject = isObject(value);
+    valueIsArray = isArray(value);
+    xpath = makeSafeXPathExpression(outputArrKey, key, value, isJson, valueIsArray);
+    outputArr.push({
+      name: key,
+      xpath: xpath,
+      struct: valueIsObject,
+      level: level
+    })
+    if (valueIsObject && !valueIsArray) {
+      addSourceProperties(value, isJson, outputArr, `${outputArrKey}/${key}`, level + 1);
+    }
   }
-}
-
-function isObject(value) {
-  // Added key criteria as typeof(value) returned 'object' for some scalar values.
-  return (value && typeof(value) === 'object' && Object.keys(value).length > 0) === true;
-}
-
-function isAtomic(value) {
-  return !isObject(value);
-}
-
-function isArray(value) {
-  // False negatives from Array.isArray(value)
-  return value && value.hasOwnProperty('0');
 }
 
 /**
@@ -68,33 +75,27 @@ function makeSafeXPathExpression(leadingPath, nextPart, value, isJson, isArray) 
   return `${leadingPath}/${funcStart}${nextPart}${funcEnd}`;
 }
 
-// Recursively process sourceData, populating a flat array of its source properties.
-function addSourceProperties(sourceData, isJson, outputArr, outputArrKey = '', level = 0) {
-  let value, valueIsObject, valueIsArray, xpath;
-  for (let key of Object.keys(sourceData)) {
-    // sourceProperties is not to receive the #text properties.
-    if (key === require('./xmlToJsonForMapping.sjs').PROP_NAME_TEXT) { continue }
-
-    value = sourceData[key];
-    valueIsObject = isObject(value);
-    valueIsArray = isArray(value);
-    xpath = makeSafeXPathExpression(outputArrKey, key, value, isJson, valueIsArray);
-    outputArr.push({
-      name: key,
-      xpath: xpath,
-      struct: valueIsObject,
-      level: level
-    })
-    if (valueIsObject && !valueIsArray) {
-      addSourceProperties(value, isJson, outputArr, `${outputArrKey}/${key}`, level + 1);
-    }
+function isValidQName(name) {
+  try {
+    fn.QName('', name);
+    return true;
+  } catch (e) {
+    return false;
   }
 }
 
-// Build and return the sourceProperties portion/array of getDocumentForTesting's return.
-function buildSourceProperties(sourceData, isJson) {
-  const outputArr = [];
-  addSourceProperties(sourceData, isJson, outputArr, '', 0)
-  return outputArr;
+function isObject(value) {
+  // Added key criteria as typeof(value) returned 'object' for some scalar values.
+  return (value && typeof(value) === 'object' && Object.keys(value).length > 0) === true;
 }
+
+function isAtomic(value) {
+  return !isObject(value);
+}
+
+function isArray(value) {
+  // False negatives from Array.isArray(value)
+  return value && value.hasOwnProperty('0');
+}
+
 exports.buildSourceProperties = buildSourceProperties;

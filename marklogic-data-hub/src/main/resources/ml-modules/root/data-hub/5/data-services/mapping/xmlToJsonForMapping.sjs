@@ -24,6 +24,14 @@ const PROP_NAME_NS_ATTR_STARTS_WITH = PROP_NAME_ATTR_STARTS_WITH + 'xmlns';
 const ATTR_NAME_DEFAULT_NS = PROP_NAME_NS_ATTR_STARTS_WITH;
 const ATTR_NAME_NON_DEFAULT_NS_STARTS_WITH = PROP_NAME_NS_ATTR_STARTS_WITH + DELIM_NS_PREFIX;
 
+// These global variables pertain to collecting namespaces defined within the provided XML.
+// Only performed once upon encountering the first namespace attribute.
+// Not compatible with MSJ.
+let jsonIn;
+let collectedNonDefaultNSs = false;
+const namespaces = {};
+const prefixMap = {};
+
 // Set up for parser
 const parser = require('/data-hub/third-party/fast-xml-parser/src/parser.js');
 const parserOptions = {
@@ -36,57 +44,25 @@ const parserOptions = {
   parseNodeValue: true,
   parseAttributeValue: true,
   trimValues: true,
-  cdataTagName: '__cdata',
+  cdataTagName: '__cdata', //default is 'false'
   cdataPositionChar: "\\c",
   localeRange: '', //To support non english character in tag/attribute values.
   parseTrueNumberOnly: false,
   arrayMode: 'strint'
 };
 
-function isAttr(name) {
-  return name.startsWith(PROP_NAME_ATTR_STARTS_WITH);
-}
-
-function isNSAttr(name) {
-  return name.startsWith(PROP_NAME_NS_ATTR_STARTS_WITH);
-}
-
-function isObject(value) {
-  return value !== null && typeof(value) === 'object';
-}
-
 /**
- * Get information about the provided value.  Originally intended to help determine if a value is atomic, and if so,
- * serve up additional information so as not to inspect the object multiple times.
+ * Transform the XML to JSON, returning that JSON and namespaces.
  *
- * @param value
- * @returns {{defaultNS: object, isArray: boolean, isAtomic: boolean, value: object}}
- * @private
+ * @param xmlNode
+ * @returns {{data: *, namespaces: {}}}
  */
-function getValueInfo(value) {
-  let isAtomic = true;
-  let defaultNS = null;
-  if (isObject(value)) {
-    for (let key of Object.keys(value)) {
-      if (!key.startsWith(PROP_NAME_TEXT_STARTS_WITH) && !key.startsWith(PROP_NAME_NS_ATTR_STARTS_WITH)) {
-        isAtomic = false;
-      }
-      if (key === ATTR_NAME_DEFAULT_NS) {
-        defaultNS = {
-          prefix: determineFinalNSPrefix(null, value[key]),
-          uri: value[key]
-        }
-      }
-    }
-  }
-  if (isAtomic && value.hasOwnProperty(PROP_NAME_TEXT)) {
-    value = value[PROP_NAME_TEXT];
-  }
+function transformXml(xmlNode) {
+  const serializeOptions = {indent: 'no'};
+  jsonIn = parser.parse(xdmp.quote(xmlNode, serializeOptions), parserOptions);
   return {
-    isArray: isAtomic ? false : Array.isArray(value),
-    isAtomic: isAtomic,
-    value: value,
-    defaultNS: defaultNS
+    data: transformJson(jsonIn, null, {}),
+    namespaces: namespaces
   }
 }
 
@@ -172,13 +148,39 @@ function addArray(jsonOut, objName, arr) {
   }
 }
 
-function isSameNS(ns1, ns2) {
-  if (ns1 === null && ns2 === null) {
-    return true;
-  } else if ((ns1 !== null && ns2 === null) || (ns1 === null && ns2 !== null)) {
-    return false;
+/**
+ * Get information about the provided value.  Originally intended to help determine if a value is atomic, and if so,
+ * serve up additional information so as not to inspect the object multiple times.
+ *
+ * @param value
+ * @returns {{defaultNS: object, isArray: boolean, isAtomic: boolean, value: object}}
+ * @private
+ */
+function getValueInfo(value) {
+  let isAtomic = true;
+  let defaultNS = null;
+  if (isObject(value)) {
+    for (let key of Object.keys(value)) {
+      if (!key.startsWith(PROP_NAME_TEXT_STARTS_WITH) && !key.startsWith(PROP_NAME_NS_ATTR_STARTS_WITH)) {
+        isAtomic = false;
+      }
+      if (key === ATTR_NAME_DEFAULT_NS) {
+        defaultNS = {
+          prefix: determineFinalNSPrefix(null, value[key]),
+          uri: value[key]
+        }
+      }
+    }
   }
-  return ns1.uri === ns2.uri;
+  if (isAtomic && value.hasOwnProperty(PROP_NAME_TEXT)) {
+    value = value[PROP_NAME_TEXT];
+  }
+  return {
+    isArray: isAtomic ? false : Array.isArray(value),
+    isAtomic: isAtomic,
+    value: value,
+    defaultNS: defaultNS
+  }
 }
 
 // Traverse doc to collect namespaces with prefixes.  Zero or once per request.
@@ -286,27 +288,26 @@ function getQName(name, isAttr, defaultNS, preferDefaultNS = false) {
   return (finalPrefix ? finalPrefix + DELIM_NS_PREFIX : '') + name;
 }
 
-// These global variables pertain to collecting namespaces defined within the provided XML.
-// Only performed once upon encountering the first namespace attribute.
-// Not compatible with MSJ.
-let jsonIn;
-let collectedNonDefaultNSs = false;
-const namespaces = {};
-const prefixMap = {};
-
-/**
- * Transform the XML to JSON, returning that JSON and namespaces.
- *
- * @param xmlNode
- * @returns {{data: *, namespaces: {}}}
- */
-function transformXml(xmlNode) {
-  const serializeOptions = {indent: 'no'};
-  jsonIn = parser.parse(xdmp.quote(xmlNode, serializeOptions), parserOptions);
-  return {
-    data: transformJson(jsonIn, null, {}),
-    namespaces: namespaces
+function isSameNS(ns1, ns2) {
+  if (ns1 === null && ns2 === null) {
+    return true;
+  } else if ((ns1 !== null && ns2 === null) || (ns1 === null && ns2 !== null)) {
+    return false;
   }
+  return ns1.uri === ns2.uri;
 }
+
+function isAttr(name) {
+  return name.startsWith(PROP_NAME_ATTR_STARTS_WITH);
+}
+
+function isNSAttr(name) {
+  return name.startsWith(PROP_NAME_NS_ATTR_STARTS_WITH);
+}
+
+function isObject(value) {
+  return value !== null && typeof(value) === 'object';
+}
+
 exports.transform = transformXml;
 exports.PROP_NAME_TEXT = PROP_NAME_TEXT;
