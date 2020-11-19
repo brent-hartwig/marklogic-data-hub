@@ -1,4 +1,4 @@
-const AdvancedSettings = {
+const AdvancedSettingsTooltips = {
     'name': 'The name of this step definition.',
     'description': 'The description of this step definition.',
     'sourceQuery' : 'The collection tag or CTS query that selects the source data to process in this step.',
@@ -61,7 +61,7 @@ const AdvCustomTooltips = {
 
 const NewMatchTooltips = {
     sourceDatabase: 'The database where the input data is read from. Must be the same as the Matching Step *Source Database*.',
-    description: 'The description of this matching configuration.',	    
+    description: 'The description of this matching configuration.',
     targetDatabase: 'The database where to store the processed data. Must be the same as the Matching Step *Source Database*.',
     sourceQuery: 'The collection or CTS query that selects the source data to process in this configuration.',
     filter: 'A node in the thesaurus to use as a filter. Example: <thsr:qualifier>birds</thsr:qualifier>',
@@ -129,7 +129,7 @@ const AdvCustomOtherTooltips = {};
 
 const ModelingTooltips = {
   entityTypeName: 'Click to view or edit settings for this entity type.',
-  addNewEntity: 'Click here to add a new entity type.',
+  addNewEntity: 'Add a new entity type.',
   instanceNumber: 'Click to navigate to the Explorer tile showing all instances of this entity type.',
   lastProcessed: 'Click to navigate to the Explorer tile showing all instances of that enttiy processed at the time.',
   nameRegex: 'Names must start with a letter, and can contain letters, numbers, hyphens, and underscores.',
@@ -143,11 +143,13 @@ const ModelingTooltips = {
   sort: 'Enables display in ascending or descending order.',
   facet: 'Use when searching, for dividing values of properties into counts, aggregating, grouping, and more.',
   wildcard: 'Enables wildcard search.',
-  addStructuredProperty: 'Click to add properties within this structured property.',
+  addStructuredProperty: 'Add a property to this structured property.',
   entityEditedAlert: "You have pending changes for one or more entity types. To apply these changes to your Data Hub, either save the modified entity types or select 'Save All'.",
   noWriteAccess: 'Contact your security administrator for access.',
-  addProperty: 'Click to add properties to this entity type.',
-  saveEntityConfirm: 'You have unsaved changes. Saving changes to the entity model will impact features that depend on the entity model and may also cause some data to be reindexed. Features that depend on the data being reindexed may not work until the reindexing is complete.'
+  addProperty: 'Add properties to this entity type.',
+  saveEntityConfirm: 'You have unsaved changes. Saving changes to the entity model will impact features that depend on the entity model and may also cause some data to be reindexed. Features that depend on the data being reindexed may not work until the reindexing is complete.',
+  saveAll: 'Save all changes to all entity types.',
+  revertAll: 'Discard changes made to all entity types since their last Save operation.',
 }
 
 const MatchingStepDetailText = {
@@ -161,7 +163,14 @@ const SecurityTooltips = {
 const MergeRuleTooltips = {
     uri : 'The path to the custom module that contains the merge function to run.',
     function : 'The merge function to run.',
-    namespace : 'The namespace of the module that contains the function to run.'
+    namespace : 'The namespace of the module that contains the function to run.',
+    maxValues: 'The maximum number of values to allow in the merged property. The default is 99.',
+    maxSources: 'The maximum number of data sources from which to get values to merge. For example, to copy values from a single source, set maxSources to 1.',
+    priorityOrder: ''
+}
+
+const MergeStrategyTooltips = {
+  delete:'Cannot delete strategies that are being used by Merge Rules'
 }
 
 const MergingStepDetailText = {
@@ -171,7 +180,7 @@ const MergingStepDetailText = {
 }
 
 export {
-    AdvancedSettings,
+    AdvancedSettingsTooltips,
     NewFlowTooltips,
     NewLoadTooltips,
     AdvLoadTooltips,
@@ -188,5 +197,6 @@ export {
     SecurityTooltips,
     MatchingStepDetailText,
     MergeRuleTooltips,
-    MergingStepDetailText
+    MergingStepDetailText,
+    MergeStrategyTooltips
 }
