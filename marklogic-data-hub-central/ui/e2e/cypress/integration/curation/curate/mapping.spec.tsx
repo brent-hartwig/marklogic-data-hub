@@ -46,10 +46,12 @@ describe('Mapping', () => {
     loadPage.stepDescriptionInput().type('load order with processors');
     loadPage.confirmationOptions('Save').click();
     cy.findByText(loadStep).should('be.visible');
-    loadPage.stepSettings(loadStep).click();
+
+    // Open step settings and switch to Advanced tab
+    loadPage.editStepInCardView(loadStep).click({force:true});
+    loadPage.switchEditAdvanced().click(); 
 
     // add processor to load step
-    cy.waitUntil(() => advancedSettingsDialog.getStepName(loadStep).should('be.visible'));
     advancedSettingsDialog.setStepProcessor('loadTile/orderCategoryCodeProcessor');
 
     //add cutomHook to load step
@@ -71,7 +73,7 @@ describe('Mapping', () => {
     runPage.runStep(loadStep).click();
     cy.uploadFile('input/10259.json');
     cy.verifyStepRunResult('success','Ingestion', loadStep);
-    tiles.closeRunMessage().click();
+    tiles.closeRunMessage();
 
     // create mapping step
     toolbar.getCurateToolbarIcon().click();
@@ -86,9 +88,11 @@ describe('Mapping', () => {
     createEditMappingDialog.saveButton().click(); 
     curatePage.verifyStepNameIsVisible(mapStep);
 
+    // Open step settings and switch to Advanced tab
+    cy.waitUntil(() => curatePage.editStep(mapStep).click({force:true}));
+    curatePage.switchEditAdvanced().click(); 
+
     // add processors
-    curatePage.stepSettings(mapStep).click();
-    cy.waitUntil(() => advancedSettingsDialog.getStepName(mapStep).should('be.visible'));
     advancedSettingsDialog.setStepProcessor('curateTile/orderDateProcessor');
 
     // add customHook to mapping step
@@ -144,10 +148,12 @@ describe('Mapping', () => {
     loadPage.stepDescriptionInput().type('load order with a custom header');
     loadPage.confirmationOptions('Save').click();
     cy.findByText(loadStep).should('be.visible');
-    loadPage.stepSettings(loadStep).click();
+
+    // Open step settings and switch to Advanced tab
+    loadPage.editStepInCardView(loadStep).click({force:true});
+    loadPage.switchEditAdvanced().click(); 
 
     // add custom header to load step
-    cy.waitUntil(() => advancedSettingsDialog.getStepName(loadStep).should('be.visible'));
     advancedSettingsDialog.setHeaderContent('loadTile/customHeader');
     advancedSettingsDialog.saveSettings(loadStep).click();
     advancedSettingsDialog.saveSettings(loadStep).should('not.be.visible');
@@ -164,7 +170,7 @@ describe('Mapping', () => {
     runPage.runStep(loadStep).click();
     cy.uploadFile('input/10260.json');
     cy.verifyStepRunResult('success','Ingestion', loadStep);
-    tiles.closeRunMessage().click();
+    tiles.closeRunMessage();
 
     // create mapping step
     toolbar.getCurateToolbarIcon().click();
@@ -176,14 +182,16 @@ describe('Mapping', () => {
     createEditMappingDialog.setMappingDescription('An order mapping with custom header');
     createEditMappingDialog.setSourceRadio('Query');
     createEditMappingDialog.setQueryInput(`cts.collectionQuery(['${loadStep}'])`);
-    createEditMappingDialog.saveButton().click(); 
+    createEditMappingDialog.saveButton().click({force:true}); 
     curatePage.verifyStepNameIsVisible(mapStep);
 
+    // Open step settings and switch to Advanced tab
+    cy.waitUntil(() => curatePage.editStep(mapStep).click({force:true}));
+    curatePage.switchEditAdvanced().click(); 
+
     // add custom header
-    curatePage.stepSettings(mapStep).click();
-    cy.waitUntil(() => advancedSettingsDialog.getStepName(mapStep).should('be.visible'));
     advancedSettingsDialog.setHeaderContent('curateTile/customHeader');
-    advancedSettingsDialog.saveSettings(mapStep).click();
+    cy.waitUntil(() => advancedSettingsDialog.saveSettings(mapStep).click({force:true}));
     advancedSettingsDialog.saveSettings(mapStep).should('not.be.visible');
 
     // map source to entity
@@ -218,7 +226,7 @@ describe('Mapping', () => {
     runPage.runStep(mapStep).click();
     cy.verifyStepRunResult('success','Mapping', mapStep);
 
-    tiles.closeRunMessage().click();
+    tiles.closeRunMessage();
     runPage.deleteStep(mapStep).click();
     loadPage.confirmationOptions('Yes').click();
 
@@ -232,7 +240,7 @@ describe('Mapping', () => {
     curatePage.confirmAddStepToFlow(mapStep, flowName);
     //Step should automatically run
     cy.verifyStepRunResult('success','Mapping', mapStep);
-    tiles.closeRunMessage().click();
+    tiles.closeRunMessage();
 
     //Delete the flow
     runPage.deleteFlow(flowName).click();

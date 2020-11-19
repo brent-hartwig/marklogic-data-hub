@@ -24,13 +24,13 @@ describe('Run Tile tests', () => {
         runPage.toggleFlowConfig('personXML');
         runPage.runStep('mapPersonXML').click();
         cy.verifyStepRunResult('success','Mapping', 'mapPersonXML');
-        tiles.closeRunMessage().click();
+        tiles.closeRunMessage();
         runPage.runStep('match-xml-person').click();
         cy.verifyStepRunResult('success','Matching', 'match-xml-person');
-        tiles.closeRunMessage().click();
+        tiles.closeRunMessage();
         runPage.runStep('merge-xml-person').click();
         cy.verifyStepRunResult('success','Merging', 'merge-xml-person');
-        tiles.closeRunMessage().click();
+        tiles.closeRunMessage();
 
         //Verify detail page renders with expected content
         toolbar.getExploreToolbarIcon().click();
@@ -43,6 +43,8 @@ describe('Run Tile tests', () => {
         browsePage.getFacetItemCheckbox('collection', 'sm-Person-merged').click();
         browsePage.getGreySelectedFacets('sm-Person-merged').should('exist');
         browsePage.getFacetApplyButton().click();
+        browsePage.waitForSpinnerToDisappear();
+        cy.waitForAsyncRequest();
         browsePage.getTotalDocuments().should('be', 2);
         browsePage.getSourceViewIcon().first().click();
         cy.waitForAsyncRequest();
